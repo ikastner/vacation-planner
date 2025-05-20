@@ -31,8 +31,8 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
       } catch (error) {
         console.error('Failed to fetch availabilities:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to load availability data.',
+          title: 'Erreur',
+          description: 'Échec du chargement des données de disponibilité.',
           variant: 'destructive',
         });
       } finally {
@@ -50,14 +50,14 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
       setAvailabilities(updatedAvailabilities);
       onDataChange(updatedAvailabilities);
       toast({
-        title: 'Deleted',
-        description: 'Availability entry has been removed',
+        title: 'Supprimé',
+        description: 'L\'entrée de disponibilité a été supprimée',
       });
     } catch (error) {
       console.error('Failed to delete availability:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete the entry',
+        title: 'Erreur',
+        description: 'Échec de la suppression de l\'entrée',
         variant: 'destructive',
       });
     }
@@ -67,7 +67,7 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Current Availabilities</CardTitle>
+          <CardTitle>Disponibilités Actuelles</CardTitle>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full rounded-md" />
@@ -80,11 +80,11 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Current Availabilities</CardTitle>
+          <CardTitle>Disponibilités Actuelles</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center py-8 text-muted-foreground">
-            No availabilities have been added yet. Add your first one above!
+            Aucune disponibilité n'a encore été ajoutée. Ajoutez votre première disponibilité ci-dessus !
           </p>
         </CardContent>
       </Card>
@@ -94,17 +94,17 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Current Availabilities</CardTitle>
+        <CardTitle>Disponibilités Actuelles</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Nom</TableHead>
+                <TableHead>Date de Début</TableHead>
+                <TableHead>Date de Fin</TableHead>
+                <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -119,7 +119,7 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
                       variant={availability.is_available ? 'default' : 'destructive'}
                       className="animate-fade-in"
                     >
-                      {availability.is_available ? 'Available' : 'Unavailable'}
+                      {availability.is_available ? 'Disponible' : 'Indisponible'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -127,7 +127,7 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(availability.id)}
-                      aria-label="Delete entry"
+                      aria-label="Supprimer l'entrée"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

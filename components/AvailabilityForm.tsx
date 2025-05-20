@@ -1,171 +1,111 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { addAvailability } from '@/lib/supabase';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/lib/auth-context';
+import { fetchAvailabilities, addAvailability, deleteAvailability } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import startOfWeek from 'date-fns/startOfWeek';
+import getDay from 'date-fns/getDay';
+import fr from 'date-fns/locale/fr';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-type AvailabilityFormProps = {
-  onSuccess: () => void;
+const locales = {
+  'fr': fr,
 };
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
 
-export function AvailabilityForm({ onSuccess }: AvailabilityFormProps) {
-  const [name, setName] = useState('');
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [isAvailable, setIsAvailable] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function AvailabilityForm({ onSuccess }: { onSuccess: () => void }) {
+  const { user, username } = useAuth();
   const { toast } = useToast();
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const resetForm = () => {
-    setName('');
-    setStartDate(undefined);
-    setEndDate(undefined);
-    setIsAvailable(true);
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const data = await fetchAvailabilities();
+      setEvents(data.map(a => ({
+        id: a.id,
+        title: a.name === username ? 'Moi' : a.name,
+        start: new Date(a.start_date),
+        end: new Date(a.end_date),
+        allDay: true,
+        isMine: a.name === username,
+        nb: 1 // à améliorer pour compter le nombre de personnes par jour
+      })));
+      setLoading(false);
+    };
+    load();
+  }, [username]);
+
+  const handleSelectSlot = async ({ start, end }: { start: Date, end: Date }) => {
+    try {
+      await addAvailability(username, start, end, true);
+      toast({ title: 'Succès', description: 'Disponibilité ajoutée' });
+      onSuccess();
+    } catch (e) {
+      toast({ title: 'Erreur', description: 'Impossible d\'ajouter la disponibilité', variant: 'destructive' });
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name || !startDate || !endDate) {
-      toast({
-        title: 'Missing information',
-        description: 'Please fill in all fields',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (startDate > endDate) {
-      toast({
-        title: 'Invalid date range',
-        description: 'Start date must be before end date',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await addAvailability(name, startDate, endDate, isAvailable);
-      toast({
-        title: 'Success!',
-        description: 'Your availability has been added',
-      });
-      resetForm();
-      onSuccess();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add availability. Please try again.',
-        variant: 'destructive',
-      });
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
+  const handleSelectEvent = async (event: any) => {
+    if (event.isMine) {
+      try {
+        await deleteAvailability(event.id);
+        toast({ title: 'Supprimé', description: 'Disponibilité supprimée' });
+        onSuccess();
+      } catch (e) {
+        toast({ title: 'Erreur', description: 'Impossible de supprimer', variant: 'destructive' });
+      }
     }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">Add Your Availability</CardTitle>
+        <CardTitle className="text-2xl">Sélectionnez vos jours de disponibilité</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Your Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !startDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !endDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="availability-mode"
-              checked={isAvailable}
-              onCheckedChange={setIsAvailable}
-            />
-            <Label htmlFor="availability-mode" className="cursor-pointer">
-              I am {isAvailable ? 'available' : 'unavailable'} during this period
-            </Label>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Adding...' : 'Add Availability'}
-          </Button>
-        </form>
+        <div style={{ height: 500 }}>
+          <BigCalendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            selectable
+            onSelectSlot={handleSelectSlot}
+            onSelectEvent={handleSelectEvent}
+            views={['month']}
+            messages={{
+              next: 'Suivant',
+              previous: 'Précédent',
+              today: "Aujourd'hui",
+              month: 'Mois',
+              week: 'Semaine',
+              day: 'Jour',
+              agenda: 'Agenda',
+              date: 'Date',
+              time: 'Heure',
+              event: 'Disponibilité',
+              noEventsInRange: 'Aucune disponibilité',
+            }}
+            popup
+            allDayAccessor={() => true}
+            style={{ background: '#fff' }}
+          />
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">Cliquez et glissez pour sélectionner vos jours. Cliquez sur vos propres disponibilités pour les supprimer.</p>
       </CardContent>
     </Card>
   );

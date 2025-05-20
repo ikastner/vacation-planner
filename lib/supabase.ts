@@ -15,7 +15,7 @@ export const supabase = createClient(
 
 export type Availability = {
   id: string;
-  name: string;
+  user_id: string;
   start_date: string;
   end_date: string;
   is_available: boolean;
@@ -33,25 +33,28 @@ export async function fetchAvailabilities(): Promise<Availability[]> {
 }
 
 export async function addAvailability(
-  name: string,
-  startDate: Date,
-  endDate: Date,
+  userId: string,
+  startDate: string,
+  endDate: string,
   isAvailable: boolean
 ): Promise<Availability> {
   const { data, error } = await supabase
     .from('availabilities')
     .insert([
       {
-        name,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        user_id: userId,
+        start_date: startDate,
+        end_date: endDate,
         is_available: isAvailable,
       },
     ])
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('Erreur Supabase addAvailability:', error);
+    throw new Error(error.message);
+  }
   return data;
 }
 
@@ -81,4 +84,50 @@ export async function updateAvailability(
 export async function deleteAvailability(id: string): Promise<void> {
   const { error } = await supabase.from('availabilities').delete().eq('id', id);
   if (error) throw new Error(error.message);
+}
+
+export type User = {
+  id: string;
+  email: string;
+  user_metadata: {
+    username?: string;
+  };
+};
+
+export async function getCurrentUser(): Promise<User | null> {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return {
+    id: user.id,
+    email: user.email || '',
+    user_metadata: user.user_metadata
+  };
+}
+
+type DbUser = {
+  id: string;
+  email: string;
+  username: string;
+};
+
+export async function fetchUsers(): Promise<User[]> {
+  const { data, error } = await supabase
+    .rpc('get_users') as { data: DbUser[] | null, error: any };
+
+  if (error) throw new Error(error.message);
+  return (data || []).map(user => ({
+    id: user.id,
+    email: user.email,
+    user_metadata: { username: user.username }
+  }));
+}
+
+export async function signOut() {
+  return supabase.auth.signOut();
+}
+
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
 }
