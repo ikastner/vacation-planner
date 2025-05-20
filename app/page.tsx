@@ -6,8 +6,7 @@ import { AvailabilityList } from '@/components/AvailabilityList';
 import { CommonAvailability } from '@/components/CommonAvailability';
 import { Availability } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { Calendar, RefreshCw, Sunset, LogOut, CalendarDays, Users, Trash2 } from 'lucide-react';
-import { LoginForm } from '@/components/LoginForm';
+import { Calendar, RefreshCw, Sunset, LogOut, CalendarDays, Users, Trash2, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { DisponibiliteCalendrier } from '@/components/DisponibiliteCalendrier';
@@ -20,7 +19,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
-import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { ModeToggle } from '@/components/ModeToggle';
 
 function isConsecutive(date1: string, date2: string): boolean {
   const d1 = new Date(date1);
@@ -31,13 +31,30 @@ function isConsecutive(date1: string, date2: string): boolean {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [allAvailabilities, setAllAvailabilities] = useState<Availability[]>([]);
   const [commonDates, setCommonDates] = useState<string[]>([]);
-  const { isAuthenticated, login, logout, user } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { toast } = useToast();
   const [userMap, setUserMap] = useState<Record<string, { username: string, email: string }>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Attendre un court instant pour laisser le temps à la session de se charger
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const allUserIds = Object.keys(userMap);
   const handleRefresh = () => {
@@ -46,19 +63,6 @@ export default function Home() {
 
   const handleDataChange = (data: Availability[]) => {
     setAvailabilities(data);
-  };
-
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      console.log('Tentative de connexion', email, password ? '***' : '');
-      await login(email, password);
-    } catch (error: any) {
-      toast({
-        title: 'Erreur de connexion',
-        description: error.message || 'Une erreur est survenue lors de la connexion',
-        variant: 'destructive',
-      });
-    }
   };
 
   const handleLogout = () => {
@@ -82,8 +86,11 @@ export default function Home() {
   };
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    if (isAuthenticated && user?.id) {
+      loadUsers();
+    }
+    // eslint-disable-next-line
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
     const load = async () => {
@@ -125,18 +132,19 @@ export default function Home() {
     }
   });
 
-  if (!isAuthenticated) {
+  if (isLoading) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-full max-w-md px-4">
-          <div className="text-center mb-8">
-            <Sunset className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h1 className="text-4xl font-bold tracking-tight text-primary">Planificateur de Vacances</h1>
-          </div>
-          <LoginForm onLogin={handleLogin} />
+        <div className="text-center">
+          <Sunset className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <p className="text-primary">Chargement...</p>
         </div>
       </main>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
@@ -146,7 +154,18 @@ export default function Home() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="rounded-full bg-card w-10 h-10 flex items-center justify-center font-bold text-lg text-primary shadow hover:bg-muted transition">
-              {userMap[user?.id || '']?.username?.[0]?.toUpperCase() || "?"}
+              {(() => {
+                const username = user?.user_metadata?.username;
+                if (username) {
+                  // Prendre l'initiale du username
+                  return username[0]?.toUpperCase();
+                }
+                const email = user?.email;
+                if (email) {
+                  return email[0]?.toUpperCase();
+                }
+                return '?';
+              })()}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -359,7 +378,7 @@ export default function Home() {
                                   isAvailable ? 'bg-muted text-primary' : 
                                   'bg-card text-muted-foreground'
                                 }`}>
-                                  {isAvailable ? 'A' : ''}
+                                  {isAvailable ? <Check className="w-4 h-4 mx-auto" /> : ''}
                                 </td>
                               );
                             })}

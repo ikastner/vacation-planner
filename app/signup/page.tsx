@@ -1,31 +1,42 @@
 "use client";
 import { useState } from "react";
 import { PrimaryButton } from "@/components/ui/primary-button";
-import { supabase } from "@/lib/supabase";
+import { signUp } from "@/lib/supabase";
 import Link from "next/link";
 import { Sunset } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/lib/auth-context';
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username }
-      }
-    });
-    setLoading(false);
-    if (error) setMessage(error.message);
-    else setMessage("Vérifie ta boîte mail pour confirmer ton inscription !");
+    try {
+      const { user } = await signUp(email, password, username);
+      await login(email, password);
+      toast({
+        title: 'Inscription réussie',
+        description: `Bienvenue ${username} ! Vous pouvez maintenant vous connecter.`,
+      });
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Échec de l\'inscription. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,11 +82,11 @@ export default function SignupPage() {
             {loading ? "Inscription..." : "S'inscrire"}
           </PrimaryButton>
         </form>
-        <div className="flex flex-col items-center gap-2 mt-6 text-sm">
+        <div className="flex flex-row items-center justify-center gap-4 mt-6 text-sm">
           <span className="text-primary">Déjà un compte ? <Link href="/" className="underline">Se connecter</Link></span>
+          <span className="text-primary">|</span>
           <Link href="/reset-password" className="text-primary underline">Mot de passe oublié ?</Link>
         </div>
-        {message && <p className="mt-4 text-center text-sm text-primary">{message}</p>}
       </div>
     </div>
   );

@@ -137,17 +137,8 @@ export async function signUp(email: string, password: string, username: string) 
     email,
     password,
     options: {
-      data: { username }
-    }
+      data: { username },
+    },
   });
-  if (error) throw error;
-  
-  // Connexion automatique après l'inscription
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  
-  if (signInError) throw signInError;
-  return signInData;
+  return { user: data.user, error };
 }
