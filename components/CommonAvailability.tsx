@@ -10,23 +10,36 @@ import { CalendarDays, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
-type CommonAvailabilityProps = {
-  availabilities: Availability[];
+type User = {
+  id: string;
+  email: string;
+  user_metadata: {
+    username?: string;
+  };
 };
 
-export function CommonAvailability({ availabilities }: CommonAvailabilityProps) {
+type CommonAvailabilityProps = {
+  availabilities: Availability[];
+  users: User[];
+};
+
+export function CommonAvailability({ availabilities, users }: CommonAvailabilityProps) {
   const [commonDates, setCommonDates] = useState<{ startDate: string; endDate: string }[]>([]);
   const [uniquePeople, setUniquePeople] = useState<string[]>([]);
 
   useEffect(() => {
-    const common = calculateCommonAvailableDates(availabilities);
+    const common = calculateCommonAvailableDates(availabilities, users);
     setCommonDates(common);
     
-    // Calculate unique people
+    // Calcul des participants uniques à partir de user_id
     const peopleSet = new Set<string>();
-    availabilities.forEach(a => peopleSet.add(a.name));
+    availabilities.forEach(a => {
+      const userObj = users.find(u => u.id === a.user_id);
+      const username = userObj?.user_metadata?.username || 'Inconnu';
+      peopleSet.add(username);
+    });
     setUniquePeople(Array.from(peopleSet));
-  }, [availabilities]);
+  }, [availabilities, users]);
 
   if (availabilities.length === 0) {
     return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Availability, deleteAvailability, fetchAvailabilities } from '@/lib/supabase';
+import { Availability, deleteAvailability, fetchAvailabilities, fetchUsers } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ type AvailabilityListProps = {
 
 export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityListProps) {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -25,8 +26,12 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
     const loadAvailabilities = async () => {
       try {
         setLoading(true);
-        const data = await fetchAvailabilities();
+        const [data, usersData] = await Promise.all([
+          fetchAvailabilities(),
+          fetchUsers()
+        ]);
         setAvailabilities(data);
+        setUsers(usersData);
         onDataChange(data);
       } catch (error) {
         console.error('Failed to fetch availabilities:', error);
@@ -109,31 +114,35 @@ export function AvailabilityList({ refreshTrigger, onDataChange }: AvailabilityL
               </TableRow>
             </TableHeader>
             <TableBody>
-              {availabilities.map((availability) => (
-                <TableRow key={availability.id}>
-                  <TableCell className="font-medium">{availability.name}</TableCell>
-                  <TableCell>{formatDate(new Date(availability.start_date))}</TableCell>
-                  <TableCell>{formatDate(new Date(availability.end_date))}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={availability.is_available ? 'default' : 'destructive'}
-                      className="animate-fade-in"
-                    >
-                      {availability.is_available ? 'Disponible' : 'Indisponible'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(availability.id)}
-                      aria-label="Supprimer l'entrée"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {availabilities.map((availability) => {
+                const userObj = users.find((u: any) => u.id === availability.user_id);
+                const username = userObj?.user_metadata?.username || 'Inconnu';
+                return (
+                  <TableRow key={availability.id}>
+                    <TableCell className="font-medium">{username}</TableCell>
+                    <TableCell>{formatDate(new Date(availability.start_date))}</TableCell>
+                    <TableCell>{formatDate(new Date(availability.end_date))}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={availability.is_available ? 'default' : 'destructive'}
+                        className="animate-fade-in"
+                      >
+                        {availability.is_available ? 'Disponible' : 'Indisponible'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(availability.id)}
+                        aria-label="Supprimer l'entrée"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

@@ -3,15 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
-import { fetchAvailabilities, addAvailability, deleteAvailability } from '@/lib/supabase';
+import { fetchAvailabilities, addAvailability, deleteAvailability, fetchUsers } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
-import startOfWeek from 'date-fns/startOfWeek';
-import getDay from 'date-fns/getDay';
-import fr from 'date-fns/locale/fr';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const locales = {
@@ -20,38 +17,52 @@ const locales = {
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
   getDay,
   locales,
 });
 
 export function AvailabilityForm({ onSuccess }: { onSuccess: () => void }) {
-  const { user, username } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await fetchAvailabilities();
-      setEvents(data.map(a => ({
-        id: a.id,
-        title: a.name === username ? 'Moi' : a.name,
-        start: new Date(a.start_date),
-        end: new Date(a.end_date),
-        allDay: true,
-        isMine: a.name === username,
-        nb: 1 // à améliorer pour compter le nombre de personnes par jour
-      })));
+      const [data, usersData] = await Promise.all([
+        fetchAvailabilities(),
+        fetchUsers()
+      ]);
+      setUsers(usersData);
+      setEvents(data.map(a => {
+        const userObj = usersData.find((u: any) => u.id === a.user_id);
+        const username = userObj?.user_metadata?.username || 'Inconnu';
+        return {
+          id: a.id,
+          title: username === user?.user_metadata.username ? 'Moi' : username,
+          start: new Date(a.start_date),
+          end: new Date(a.end_date),
+          allDay: true,
+          isMine: username === user?.user_metadata.username,
+          nb: 1 // à améliorer pour compter le nombre de personnes par jour
+        };
+      }));
       setLoading(false);
     };
     load();
-  }, [username]);
+  }, [user?.user_metadata.username]);
 
   const handleSelectSlot = async ({ start, end }: { start: Date, end: Date }) => {
     try {
-      await addAvailability(username, start, end, true);
+      await addAvailability(
+        user?.id || '',
+        start.toISOString().split('T')[0],
+        end.toISOString().split('T')[0],
+        true
+      );
       toast({ title: 'Succès', description: 'Disponibilité ajoutée' });
       onSuccess();
     } catch (e) {
