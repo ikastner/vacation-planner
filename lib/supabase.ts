@@ -141,5 +141,13 @@ export async function signUp(email: string, password: string, username: string) 
     }
   });
   if (error) throw error;
-  return data;
+  
+  // Connexion automatique après l'inscription
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+  
+  if (signInError) throw signInError;
+  return signInData;
 }

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { signUp } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,7 @@ export function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,11 +42,12 @@ export function SignUpForm() {
 
     try {
       setIsSubmitting(true);
-      await signUp(email, password, username);
+      const { user } = await signUp(email, password, username);
       toast({
         title: 'Inscription réussie',
-        description: 'Veuillez vérifier votre email pour confirmer votre compte',
+        description: `Bienvenue ${username} ! Vous êtes maintenant connecté.`,
       });
+      router.push('/dashboard');
     } catch (error: any) {
       toast({
         title: 'Erreur',
