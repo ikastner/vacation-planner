@@ -131,7 +131,7 @@ export default function Home() {
         <div className="w-full max-w-md px-4">
           <div className="text-center mb-8">
             <Sunset className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h1 className="text-4xl font-bold tracking-tight">Planificateur de Vacances</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-primary">Planificateur de Vacances</h1>
           </div>
           <LoginForm onLogin={handleLogin} />
         </div>
@@ -140,12 +140,12 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Menu profil en haut à droite */}
       <div className="w-full flex justify-end items-center px-8 pt-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="rounded-full bg-gray-200 w-10 h-10 flex items-center justify-center font-bold text-lg text-primary shadow hover:bg-gray-300 transition">
+            <button className="rounded-full bg-card w-10 h-10 flex items-center justify-center font-bold text-lg text-primary shadow hover:bg-muted transition">
               {userMap[user?.id || '']?.username?.[0]?.toUpperCase() || "?"}
             </button>
           </DropdownMenuTrigger>
@@ -195,10 +195,10 @@ export default function Home() {
 
         {/* Liste des jours saisis par l'utilisateur connecté */}
         <div className="mb-12">
-          <h3 className="text-sm font-semibold mb-2 text-[hsl(var(--primary))]">Mes jours saisis</h3>
+          <h3 className="text-sm font-semibold mb-2 text-primary">Mes jours saisis</h3>
           <div className="flex flex-wrap gap-2">
             {userAvailabilities.length === 0 && (
-              <span className="text-[hsl(var(--primary)/0.5)] text-xs">Aucune saisie pour l'instant.</span>
+              <span className="text-muted-foreground text-xs">Aucune saisie pour l'instant.</span>
             )}
             {userAvailabilities.map(avail => {
               let days = [];
@@ -209,10 +209,10 @@ export default function Home() {
                 d.setDate(d.getDate() + 1);
               }
               return days.map(day => (
-                <span key={avail.id + day} className="inline-flex items-center bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] rounded px-2 py-1 text-xs font-medium">
+                <span key={avail.id + day} className="inline-flex items-center bg-muted text-primary rounded px-2 py-1 text-xs font-medium">
                   {day}
                   <button
-                    className="ml-1 text-[hsl(var(--primary)/0.5)] hover:text-[hsl(var(--primary))]"
+                    className="ml-1 text-muted-foreground hover:text-primary"
                     onClick={async () => {
                       await deleteAvailability(avail.id);
                       handleRefresh();
@@ -229,12 +229,12 @@ export default function Home() {
 
         {/* Planning des disponibilités */}
         <div className="overflow-x-auto w-full">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-[hsl(var(--primary))]">
-            <Users className="w-6 h-6 text-[hsl(var(--primary))]" /> 
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-primary">
+            <Users className="w-6 h-6 text-primary" /> 
             Planning des disponibilités
           </h2>
           {allAvailabilities.length === 0 ? (
-            <p className="text-[hsl(var(--primary)/0.5)]">Aucune disponibilité enregistrée.</p>
+            <p className="text-muted-foreground">Aucune disponibilité enregistrée.</p>
           ) : (
             (() => {
               const users = Array.from(new Set(allAvailabilities.map(a => a.user_id)));
@@ -277,14 +277,14 @@ export default function Home() {
                 <>
                   {/* Périodes avec disponibilités */}
                   <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[hsl(var(--primary))]">
-                      <Calendar className="w-5 h-5 text-[hsl(var(--primary))]" />
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
+                      <Calendar className="w-5 h-5 text-primary" />
                       Périodes avec disponibilités
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {groupedDays.map((group, index) => (
-                        <div key={index} className="bg-white p-4 rounded-lg shadow border border-[hsl(var(--primary)/0.2)]">
-                          <div className="font-medium text-sm text-[hsl(var(--primary)/0.6)] mb-2">
+                        <div key={index} className="bg-card text-card-foreground p-4 rounded-lg shadow border border-border">
+                          <div className="font-medium text-sm text-muted-foreground mb-2">
                             {format(new Date(group[0]), 'dd MMM yyyy')} - {format(new Date(group[group.length - 1]), 'dd MMM yyyy')}
                           </div>
                           <div className="space-y-2">
@@ -293,13 +293,13 @@ export default function Home() {
                               if (availableDays.length > 0) {
                                 return (
                                   <div key={userId} className="flex items-center gap-2 text-sm">
-                                    <div className="w-6 h-6 rounded-full bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] flex items-center justify-center font-medium">
+                                    <div className="w-6 h-6 rounded-full bg-muted text-primary flex items-center justify-center font-medium">
                                       {userMap[userId]?.username?.[0]?.toUpperCase() || '?'}
                                     </div>
-                                    <span className="text-[hsl(var(--primary))]">
+                                    <span className="text-primary">
                                       {userMap[userId]?.username || userId}
                                     </span>
-                                    <span className="text-[hsl(var(--primary)/0.6)]">
+                                    <span className="text-muted-foreground">
                                       ({availableDays.length} jours)
                                     </span>
                                   </div>
@@ -318,18 +318,18 @@ export default function Home() {
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
                         <tr>
-                          <th className="sticky left-0 z-20 bg-[hsl(var(--primary)/0.04)] px-4 py-3 font-medium text-[hsl(var(--primary))] text-left border-r border-[hsl(var(--primary)/0.2)]">
+                          <th className="sticky left-0 z-20 bg-card text-card-foreground px-4 py-3 font-medium text-primary text-left border-r border-border">
                           </th>
                           {days.map(date => {
                             const formattedDate = format(new Date(date), 'dd');
                             const isCommon = users.every(u => daysByUser[u]?.has(date));
                             const hasAnyAvailability = users.some(u => daysByUser[u]?.has(date));
                             return (
-                              <th key={date} className="px-2 py-3 font-medium text-[hsl(var(--primary)/0.6)] text-center min-w-[60px]">
+                              <th key={date} className="px-2 py-3 font-medium text-muted-foreground text-center min-w-[60px]">
                                 <div className={`rounded-full w-8 h-8 mx-auto flex items-center justify-center text-xs ${
-                                  isCommon ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))]' : 
-                                  hasAnyAvailability ? 'bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]' : 
-                                  'bg-[hsl(var(--primary)/0.04)] text-[hsl(var(--primary)/0.4)]'
+                                  isCommon ? 'bg-card text-primary' : 
+                                  hasAnyAvailability ? 'bg-muted text-primary' : 
+                                  'bg-card text-muted-foreground'
                                 }`}>
                                   {formattedDate}
                                 </div>
@@ -341,9 +341,9 @@ export default function Home() {
                       <tbody>
                         {users.map(userId => (
                           <tr key={userId}>
-                            <td className="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-[hsl(var(--primary))] text-left border-r border-[hsl(var(--primary)/0.2)]">
+                            <td className="sticky left-0 z-10 bg-card text-card-foreground px-4 py-2 font-medium text-primary text-left border-r border-border">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] flex items-center justify-center font-medium">
+                                <div className="w-6 h-6 rounded-full bg-muted text-primary flex items-center justify-center font-medium">
                                   {userMap[userId]?.username?.[0]?.toUpperCase() || '?'}
                                 </div>
                                 <span>{userMap[userId]?.username || userId}</span>
@@ -355,9 +355,9 @@ export default function Home() {
                               const hasAnyAvailability = users.some(u => daysByUser[u]?.has(date));
                               return (
                                 <td key={date} className={`px-2 py-2 text-center text-xs font-medium ${
-                                  isCommon ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))]' : 
-                                  isAvailable ? 'bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]' : 
-                                  'bg-[hsl(var(--primary)/0.04)] text-[hsl(var(--primary)/0.4)]'
+                                  isCommon ? 'bg-card text-primary' : 
+                                  isAvailable ? 'bg-muted text-primary' : 
+                                  'bg-card text-muted-foreground'
                                 }`}>
                                   {isAvailable ? 'A' : ''}
                                 </td>
@@ -369,13 +369,13 @@ export default function Home() {
                     </table>
                   </div>
 
-                  <div className="mt-4 text-sm text-[hsl(var(--primary)/0.6)] flex items-center gap-4">
+                  <div className="mt-4 text-sm text-muted-foreground flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.15)]"></div>
+                      <div className="w-3 h-3 rounded-full bg-card text-primary"></div>
                       <span>Tous disponibles</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.08)]"></div>
+                      <div className="w-3 h-3 rounded-full bg-muted text-primary"></div>
                       <span>Certains disponibles</span>
                     </div>
                   </div>

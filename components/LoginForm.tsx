@@ -45,14 +45,14 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto bg-card text-card-foreground">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Connexion</CardTitle>
+        <CardTitle className="text-2xl text-center text-primary">Connexion</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-primary">Email</Label>
             <Input
               id="email"
               type="email"
@@ -60,11 +60,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Entrez votre email"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <Label htmlFor="password" className="text-primary">Mot de passe</Label>
             <Input
               id="password"
               type="password"
@@ -72,6 +73,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Entrez votre mot de passe"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 

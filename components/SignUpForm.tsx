@@ -57,14 +57,14 @@ export function SignUpForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto bg-card text-card-foreground">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Inscription</CardTitle>
+        <CardTitle className="text-2xl text-center text-primary">Inscription</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-primary">Email</Label>
             <Input
               id="email"
               type="email"
@@ -72,22 +72,24 @@ export function SignUpForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Entrez votre email"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">Nom d'utilisateur</Label>
+            <Label htmlFor="username" className="text-primary">Nom d'utilisateur</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Choisissez un nom d'utilisateur"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <Label htmlFor="password" className="text-primary">Mot de passe</Label>
             <Input
               id="password"
               type="password"
@@ -95,11 +97,12 @@ export function SignUpForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Choisissez un mot de passe"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+            <Label htmlFor="confirmPassword" className="text-primary">Confirmer le mot de passe</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -107,6 +110,7 @@ export function SignUpForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirmez votre mot de passe"
               required
+              className="bg-background text-foreground border-border"
             />
           </div>
 

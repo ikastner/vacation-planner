@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { InteractiveButton } from "@/components/ui/interactive-button";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/card-3d";
 import { useToast } from "@/hooks/use-toast";
-import { BoxReveal } from "@/components/ui/box-reveal";
+import { BlurReveal } from "@/components/ui/BlurReveal";
 
 export function DisponibiliteCalendrier({ onSave, disabledDates = [], groupAvailabilities = {} }: { onSave: (dates: Date[]) => void, disabledDates?: Date[], groupAvailabilities?: Record<string, string[]> }) {
   const [selectedDates, setSelectedDates] = React.useState<Date[]>([]);
@@ -47,7 +47,7 @@ export function DisponibiliteCalendrier({ onSave, disabledDates = [], groupAvail
         .rdp {
           --rdp-cell-size: auto !important;
           --rdp-accent-color: hsl(var(--primary)) !important;
-          --rdp-background-color: hsl(var(--primary) / 0.08) !important;
+          --rdp-background-color: hsl(var(--card)) !important;
           margin: 0 !important;
           width: 100% !important;
           max-width: 100% !important;
@@ -143,7 +143,7 @@ export function DisponibiliteCalendrier({ onSave, disabledDates = [], groupAvail
           flex: 1 1 auto !important;
           text-align: center !important;
           font-weight: 600 !important;
-          color: #1f2937 !important;
+          color: hsl(var(--foreground)) !important;
           font-size: 1.2rem !important;
           background: none !important;
           height: auto !important;
@@ -158,17 +158,18 @@ export function DisponibiliteCalendrier({ onSave, disabledDates = [], groupAvail
       `}</style>
 
       <div className="flex flex-col items-center w-full max-w-xl mx-auto mb-6">
-        <BoxReveal color="#000000" duration={0.7} delay={0.2} className="w-full">
           <div className="text-center py-6">
-            <h1 className="text-3xl font-bold text-rgb(15 23 42 / var(--tw-bg-opacity)) mb-2">Planifiez vos vacances en équipe</h1>
-            <p className="text-rgb(15 23 42 / var(--tw-bg-opacity)) text-base">Choisissez vos jours de disponibilité et trouvez la meilleure période pour tous.</p>
+            <BlurReveal duration={1.2} delay={0.2} blur="12px" yOffset={24}>
+              <h1 className="text-3xl font-bold text-primary mb-2">Planifiez vos vacances en équipe</h1>
+              <p className="text-muted-foreground text-base">Choisissez vos jours de disponibilité et trouvez la meilleure période pour tous.</p>
+
+            </BlurReveal>
           </div>
-        </BoxReveal>
       </div>
 
       <CardContainer containerClassName="w-full max-w-xl mx-auto">
         <CardBody>
-          <Card className="w-full rounded-2xl shadow-lg border bg-white overflow-hidden">
+          <Card className="w-full rounded-2xl shadow-lg border bg-card text-card-foreground overflow-hidden">
             <CardContent className="p-6">
               <CardItem translateZ={30}>
                 <div className="w-full">
@@ -185,7 +186,7 @@ export function DisponibiliteCalendrier({ onSave, disabledDates = [], groupAvail
                       cell: "w-full p-0",
                       head_cell: "w-full",
                       button: "w-full h-full",
-                      nav_button: "h-8 w-8 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center",
+                      nav_button: "h-8 w-8 hover:bg-muted rounded-full transition-all duration-200 flex items-center justify-center",
                       nav_button_previous: "",
                       nav_button_next: "",
                       caption: "flex-1 text-center text-lg font-semibold",
